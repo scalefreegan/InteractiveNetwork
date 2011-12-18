@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<!-- saved from url=(0073)http://druid.systemsbiology.net/~wwu/jsnetwork_20110519/network_test.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <title>Interactive Network Test</title>
+    <style>
+      body {
+        font-family: Helvetica, Verdana, Arial, sans-serif;
+        font-size: 10pt;
+      }
+      .togglebutton {
+        border: 1px black solid;
+        padding: 5px;
+        border-radius: 3px;
+      }
+      .tbselected {
+        color: white;
+        background-color: black;
+      }
+      .controlbar {
+        margin: 20px;
+      }
+      .timecontrol {
+        border: 1px black solid;
+        padding-top:    5px;
+        padding-bottom: 5px;
+        padding-left:   20px;
+        padding-right:  20px;
+        border-radius:  3px;
+      }
+      .tcactive {
+        background-color: orange;
+      }
+      #display-time {
+        font-family: Courier;
+        font-size: 12pt;
+      }
+      #message1 {
+        color: blue;
+      }
+      #statusbar {
+        margin-left: 10px;
+        margin-top: 12px;
+        margin-bottom: 8px;
+      }
+    </style>
+    <script src="./Interactive Network Test_files/jquery-1.6.1.min.js"></script>
+    <script src="./Interactive Network Test_files/raphael-min.js"></script>
+    <script src="./Interactive Network Test_files/network.js"></script>
+    <script type="text/javascript">
+      var WIDTH = 640;
+      var HEIGHT = 400;
+
+      $(document).ready(function() {
+        paper = isb.setupNetworkEditor({
+            id: 'editor',
+            dimensions: { width: WIDTH, height: HEIGHT },
+            nodes: [
+              { x: 50, y: 30, r: 25},
+              { x: 200, y: 170, r: 33 },
+              { x: 540, y: 300, r: 15 },
+              { x: 100, y: 280, r: 50 }, 
+            ]});
+      });
+    </script>
+  </head>
+  <body>
+    <h1>Interactive Network Prototype</h1>
+    <h2>Task 1: Connect the nodes in a way so that...</h2>
+    <h3>Description</h3>
+    <p>
+      Some description of the problem. You have the following parts:
+      (some description)
+    </p>
+    <ul>
+      <li>Activators...(some explanation) </li>
+      <li>Repressors...(some explanation) </li>
+    </ul>
+    <h2>Let's start. Good Luck !</h2>
+    <div id="editor"></div>  
+
+</body></html>
