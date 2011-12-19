@@ -44,11 +44,6 @@ if (!isb) {
 
     }
     
-    function ExponentialDecay(n_0,lambda,t) {
-        var n = n_0*Math.exp(-lambda*t)
-        return(n)
-    }
-    
     function rnd_snd() {
         return (Math.random()*2-1)+(Math.random()*2-1)+(Math.random()*2-1);
     }
@@ -58,6 +53,8 @@ if (!isb) {
     }
 
     function Edge(canvas, from, to, width, color) {
+        var from = from
+        var to = to
         function rad2deg(angle) { return angle * 180 / Math.PI; }
         function deg2rad(angle) { return angle * Math.PI / 180; }
         var tri = null;
@@ -95,8 +92,16 @@ if (!isb) {
             iy += cy;
             return {x: ix, y: iy};
         }
-
+        this.getFrom = function() {
+            return from
+        }
+        this.getTo = function() {
+            return to
+        }
         var edgegfx = null;
+        this.getEdgegfx = function() {
+            return edgegfx
+        }
         this.update = function() {
             var x0 = from.attr('cx'), y0 = from.attr('cy'), r0 = from.attr('r');
             var x1 = to.attr('cx'), y1 = to.attr('cy'), r1 = to.attr('r');
@@ -104,7 +109,7 @@ if (!isb) {
             var inter_to = intersectLineAndCircle(x0, y0, x1, y1, x1, y1, r1, m);
             var inter_from = intersectLineAndCircle(x1, y1, x0, y0, x0, y0, r0, m);
 
-            pathString =  'M ' + inter_from.x + ' ' + inter_from.y + ' L ' +
+            pathString =  'M ' + inter_from.x + ' ' + inter_from.y + ' T ' +
                 inter_to.x + ' ' + inter_to.y;
 
             if (edgegfx == null) {
@@ -163,6 +168,61 @@ if (!isb) {
             }
             return null;
         }
+        this.findNodeIndex = function(x, y) {
+            for (var i = 0; i < nodes.length; i++) {
+                var node = nodes[i];
+                if (nodeContains(node, x, y)) {
+                    return i;
+                }
+            }
+            return null;
+        }
+
+        this.calculateExpressionRates = function() {
+            var adjacencyMatrix = new Array(nodes.length);
+            for (i = 0; i < adjacencyMatrix.length; ++ i)
+                adjacencyMatrix[i] = new Array(nodes.length);
+            for (var i = 0; i < edges.length; i++) {
+                var edge = edges[i];
+                var nodeFrom = edge.getFrom();
+                var nodeFromIndex = this.findNodeIndex(nodeFrom.attr('cx'),nodeFrom.attr('cy'));
+                nodeFrom = nodes[nodeFromIndex]; 
+                var nodeTo = edge.getTo();
+                var nodeToIndex = this.findNodeIndex(nodeTo.attr('cx'),nodeTo.attr('cy'));
+                nodeTo = nodes[nodeToIndex];
+                //alert(calculateKinetics(nodeFrom,edge));
+                adjacencyMatrix[nodeFromIndex][nodeToIndex] = calculateKinetics(nodeFrom,edge);
+            }
+            return adjacencyMatrix;
+        }
+        function calculateKinetics(nodeFrom,edge) {
+            var gfx = edge.getEdgegfx(edge)
+            var edgeType = [gfx.attr("stroke-width"),gfx.attr("stroke")]
+            if (edgeType[0] == 3 && edgeType[1] == "#000") { // Strong activator
+                var km = 2;
+                var vmax = 10;
+                var rate = rnd((vmax*nodeFrom.attr("r"))/(km+nodeFrom.attr("r")),5); // random value center on activity
+                return rate;
+            }
+            else if (edgeType[0] == 1 && edgeType[1] == "#000") { // Weak activator) 
+                var km = 5;
+                var vmax = 10;
+                var rate = rnd((vmax*nodeFrom.attr("r"))/(km+nodeFrom.attr("r")),5);
+                return rate;
+            }
+            else if (edgeType[0] == 3 && edgeType[1] == "#f00") { // Strong repressor
+                var km = 2;
+                var vmax = 10;
+                var rate = rnd(-(vmax*nodeFrom.attr("r"))/(km+nodeFrom.attr("r")),5);
+                return rate;
+            }
+            else if (edgeType[0] == 1 && edgeType[1] == "#f00") { // Weak repressor
+                var km = 5;
+                var vmax = 10;
+                var rate = rnd(-(vmax*nodeFrom.attr('r'))/(km+nodeFrom.attr('r')),5);
+                return rate;
+            }            
+        }
         this.updateEdges = function() {
             for (var i = 0; i < edges.length; i++) {
                 edges[i].update();
@@ -181,9 +241,9 @@ if (!isb) {
                                            this.edgeStrokeWidth, this.edgeStrokeColor);
             for (var i = 0; i < nodes.length; i++) {
                 var node = nodes[i];
-                var bgColor = node.attr('stroke')
-                node.attr('fill',bgColor)
-                nodes[i] = node
+                var bgColor = node.attr('stroke');
+                node.attr('fill',bgColor);
+                nodes[i] = node;
             }
         };
 
@@ -253,8 +313,7 @@ if (!isb) {
     var playing = false;
     var TIME_INCREMENT = 50;
     var millis = 0, seconds = 0, minutes = 0;
-    var increment0 = 1, increment1 = 1, increment2 = 1; // TODO: this is only demo
-    var DECAY = 0.0001
+    var DECAY = 0.000001
 
     isb.setupNetworkEditor = function(config) {
         var width = config.dimensions.width;
@@ -277,7 +336,6 @@ if (!isb) {
             updateEditModeButtons(1);
             isb.editor.edgeStrokeWidth = 3;
             isb.editor.edgeStrokeColor = '#000';
-            isb.editor.CreateMode ='Edge'
             isb.editor.enterSetStartNodeMode()
         });
         $('#addactiv_wk').click(function() {
@@ -343,22 +401,29 @@ if (!isb) {
                 seconds -= 60;
             }
         }
-        function simulateCircle(nodeInt) {
-            var r0_orig = isb.editor.nodeAt(nodeInt).attr('r');
-            if (r0_orig == 0) {
-                var increment0 = Math.floor(Math.random()*3);
-                var adjust = r0_orig + increment0
+        function colSum(matrix,n) {
+            var mLen = matrix.length
+            var sum = 0
+            for (i=0;i<mLen;i++) {
+                sum = sum+matrix[i][n]
             } 
-            else {
-                adjust = ExponentialDecay(r0_orig,DECAY,TIME_INCREMENT)
-                //adjust = rnd(adjust,1)
-                if (adjust < 0) adjust = 0
-            }
+            return sum
+        }
+        function simulateCircle(nodeInt,rates,lambda,time) {
+            var node = isb.editor.nodeAt(nodeInt);
+            var r0 = node.attr('r');
+            var ratesN = colSum(rates,nodeInt); //indexed at 0
+            var adjust = ((ratesN*r0 - lambda*r0)*time)+r0
+            if (adjust < 0) {
+                adjust = 0
+            } 
             isb.editor.nodeAt(nodeInt).attr('r', adjust);
         }
         // simulate circle 
+        var rates = isb.editor.calculateExpressionRates()
+        alert(rates)
         for (var i = 0; i < isb.editor.nodes.length; i++) {
-                simulateCircle(i);
+                simulateCircle(i, rates,DECAY,TIME_INCREMENT);
             }
 
         // adapt the end points of the edges as well
