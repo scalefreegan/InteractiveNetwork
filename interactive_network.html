@@ -45,6 +45,7 @@
     </style>
     <script src="jquery-1.6.1.min.js"></script>
     <script src="raphael-min.js"></script>
+    <script src="battery.js"></script>
     <script src="network.js"></script>
     <script type="text/javascript">
       var WIDTH = 640;
@@ -55,6 +56,8 @@
             id: 'editor',
             dimensions: { width: WIDTH, height: HEIGHT },
             nodes: []});
+        var battery = new Battery('images/battery_empty.png', 'images/battery_full.png', 42, 24);
+        battery.appendTo(document.getElementById('battery_holder'));
       });
     </script>
   </head>
@@ -71,6 +74,8 @@
       <li>Repressors...(some explanation) </li>
     </ul>
     <h2>Let's start. Good Luck !</h2>
+    <div id="battery_holder"></div>
+    <div id="battery">Cellular Battery Remaining = 100%</div>
     <div id="editor"></div>  
 
 </body></html>
