@@ -29,21 +29,23 @@ shinyUI(pageWithSidebar(
           
     HTML("<hr />"),
     
+    selectInput("method", "Method:",
+                list("Power Law" = "g_powerlaw", 
+                     "Random" = "g_random"
+                     )),
+
     sliderInput(inputId = "n_nodes",
                 label="Number of nodes:",
-                min = 0, max = 1000, value = 100, step = 10),
-  
-    sliderInput(inputId = "con_weight",
-                label = "Connection threshold:",
-                min = 0.0, max = 1, value = .15, step = 0.05),
-    
-	helpText("Use the slider to set the number of connections which 
-             will be displayed in the graph. Higher, more stringent 
-             thresholds will include fewer connections, while lower thresholds 
-             will display more connections"),
+                min = 0, max = 1000, value = 100, step = 5),
+
+
+	helpText("Use the sliders to set the number of nodes and connections which 
+             will be displayed in the graph."),
+
+	submitButton("Update"),
     
     HTML("<hr />"),
-    helpText(HTML("All source available on <a href = \"https://github.com/trestletech/shiny-sandbox/tree/master/grn\">Github</a>"))
+    helpText(HTML("All source available on <a href = \"https://github.com/scalefreegan/InteractiveNetwork/tree/experimental/R/network_robustness\">Github</a>"))
   ),
   
   

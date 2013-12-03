@@ -34,8 +34,8 @@
       var force = d3.layout.force()
         .nodes(nodes)
         .links(lin)
-        .charge(-120)
-        .linkDistance(30)        
+        .charge(-100)
+        .linkDistance(10)        
         .size([width, height])
         .start();
       

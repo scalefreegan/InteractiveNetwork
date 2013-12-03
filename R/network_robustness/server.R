@@ -1,4 +1,5 @@
 library(igraph)
+library(ENA)
 
 reactiveAdjacencyMatrix <- function(func){
   reactive(function(){
@@ -38,8 +39,14 @@ shinyServer(function(input, output) {
 
   data <- reactive(function(){
     
-    # generate graph    
-    g <- barabasi.game(input$n_nodes)
+    # generate graph
+
+    if (input$method == "g_powerlaw") {
+        g <- barabasi.game (n=input$n_nodes)
+      } else if (input$method == "g_random") {
+        g.tmp <- barabasi.game (n=input$n_nodes)
+        g<-erdos.renyi.game(n=input$n_nodes,p.or.m=ecount(g.tmp),type="gnm")
+      }
     # make adjacency
     data <- get.adjacency(graph=g,sparse=F)
     rownames(data) <- seq(1,dim(data)[1]); colnames(data) <- seq(1,dim(data)[2])
@@ -50,8 +57,6 @@ shinyServer(function(input, output) {
   output$mainnet <- reactiveAdjacencyMatrix(function() {
     
     net <- data()
-    
-    net[net < input$con_weight] <- 0
     
     net
 
