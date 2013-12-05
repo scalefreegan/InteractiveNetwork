@@ -2,20 +2,12 @@ library(igraph)
 library(ENA)
 
 reactiveAdjacencyMatrix <- function(func){
-  reactive({
+  reactive(function(){
     
-    g <- func()
+    val <- func()
     
-    if (is.null(g)){
+    if (is.null(val)){
       return(list(names=character(), links=list(source=-1, target=-1)))
-    }
-
-    val <- get.adjacency(graph=g,sparse=F)
-    rownames(val) <- seq(1,dim(val)[1]); colnames(val) <- seq(1,dim(val)[2])
-
-    if (dim(val)[1]>1000) {
-      ss <- sample(rownames(val),size=1000,replace=F)
-      val <- val[ss,ss]
     }
     
     #TODO: re-arrange columns if necessary
@@ -48,7 +40,7 @@ reactiveAdjacencyMatrix <- function(func){
 
 shinyServer(function(input, output) {
 
-  makeGraph <- reactive({
+  data <- reactive(function(){
     
     # generate graph
 
@@ -58,20 +50,20 @@ shinyServer(function(input, output) {
         #g.tmp <- barabasi.game (n=input$n_nodes)
         g<-erdos.renyi.game(n=input$n_nodes,p.or.m=1/input$n_nodes)
       }
-    return(g)
+    # make adjacency
+    data <- get.adjacency(graph=g,sparse=F)
+    rownames(data) <- seq(1,dim(data)[1]); colnames(data) <- seq(1,dim(data)[2])
+    return(data)
   })
   
+  # tmp_output <- reactiveAdjacencyMatrix(function() {
+  #   data()
+  # })
+  tmp_output <- reactiveAdjacencyMatrix(data())
+  print(tmp_output)
+  
+  #output$mainnet <- tmp_output$net
   output$mainnet <- reactiveAdjacencyMatrix(function() {
-     makeGraph()
+     data()
    })
-  output$plots <- renderPlot({
-    g <- makeGraph()
-    layout(matrix(seq(1,4),nrow=2,ncol=2))
-    dd <- degree.distribution(g); names(dd) <- seq(0,length(dd)-1)
-    barplot(dd,ylab="Fraction",main="Degree Distribution",ylim=c(0,1))
-    })
-  output$whole_graph <- renderPlot({
-    g <- makeGraph()
-    plot(g,vertex.label=NA,vertex.size=15*(100/length(V(g))),layout=layout.drl,edge.curved=T,edge.arrow.size=0)
-    })
 })

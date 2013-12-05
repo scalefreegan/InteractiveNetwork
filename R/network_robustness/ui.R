@@ -21,6 +21,11 @@ googleAnalytics <- function(account="UA-36850640-1"){
   </script>", sep=""))
 }
 
+makeGraphTab <- function(){
+  includeHTML("graph.js")
+  reactiveNetwork(outputId = "mainnet")
+  #googleAnalytics())
+}
 
 shinyUI(pageWithSidebar(    
   headerPanel("Robustness Challenge"),
@@ -36,7 +41,7 @@ shinyUI(pageWithSidebar(
 
     sliderInput(inputId = "n_nodes",
                 label="Number of nodes:",
-                min = 0, max = 1000, value = 100, step = 5),
+                min = 10, max = 5000, value = 100, step = 5),
 
 
 	helpText("Use the sliders to set the number of nodes and connections which 
@@ -45,14 +50,17 @@ shinyUI(pageWithSidebar(
 	submitButton("Update"),
     
     HTML("<hr />"),
-    helpText(HTML("All source available on <a href = \"https://github.com/scalefreegan/InteractiveNetwork/tree/experimental/R/network_robustness\">Github</a>"))
+    helpText(HTML("Source available at <a href = \"https://github.com/scalefreegan/InteractiveNetwork/tree/experimental/R/network_robustness\">Github</a>"))
   ),
   
   
-  mainPanel(    
+  mainPanel(
     includeHTML("graph.js"),
-    reactiveNetwork(outputId = "mainnet") ,
-    googleAnalytics()
+    tabsetPanel(
+      tabPanel("Live",makeGraphTab()),
+      tabPanel("Stats",plotOutput("plots")), 
+      tabPanel("Your Graph",plotOutput("whole_graph"))  
+    )
   )
   
   

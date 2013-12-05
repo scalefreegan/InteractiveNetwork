@@ -25,7 +25,7 @@
       for (var i = 0; i < data.names.length; i++){
         nodes.push({"name": data.names[i]})
       }
-
+      //alert(nodes.length)
 
       var width = 800;
       var height = 600;
@@ -34,8 +34,8 @@
       var force = d3.layout.force()
         .nodes(nodes)
         .links(lin)
-        .charge(-100)
-        .linkDistance(10)        
+        .charge(-(100*(100/nodes.length)))
+        .linkDistance(10*(100/nodes.length))        
         .size([width, height])
         .start();
       
@@ -55,7 +55,8 @@
           .data(lin)
         .enter().append("line")
           .attr("class", "link")
-          .style("stroke-width", function(d) { return Math.sqrt(d.value); });
+          //.style("stroke-width", function(d) { return (Math.sqrt(d.value)*1000); });
+          .style("stroke-width", 2);
     
       var node = svg.selectAll("circle.node")
           .data(nodes)
