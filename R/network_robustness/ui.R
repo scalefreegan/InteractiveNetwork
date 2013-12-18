@@ -22,7 +22,6 @@ googleAnalytics <- function(account="UA-36850640-1"){
 }
 
 makeGraphTab <- function(){
-  includeHTML("graph.js")
   reactiveNetwork(outputId = "mainnet")
   #googleAnalytics())
 }
@@ -43,11 +42,14 @@ shinyUI(pageWithSidebar(
                 label="Number of nodes:",
                 min = 10, max = 5000, value = 100, step = 5),
 
-
-	helpText("Use the sliders to set the number of nodes and connections which 
+    helpText("Use the sliders to set the number of nodes and connections which 
              will be displayed in the graph."),
 
-	submitButton("Update"),
+    checkboxInput(inputId = "run",
+                label="Score the network",
+                value=T),
+
+	 submitButton("GO!"),
     
     HTML("<hr />"),
     helpText(HTML("Source available at <a href = \"https://github.com/scalefreegan/InteractiveNetwork/tree/experimental/R/network_robustness\">Github</a>"))

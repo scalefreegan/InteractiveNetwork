@@ -159,7 +159,7 @@
       setTimeout(function() { initializeGraph(n); },0);
       setTimeout(function() { iterColor(n); },2000);
       //debugger;
-      //removeNode(n);
+      removeNode(n);
       //removeNodeLinks(n);
       //setTimeout(function() { iterRemove(n); },2000);
 

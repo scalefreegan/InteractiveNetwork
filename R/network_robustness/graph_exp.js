@@ -69,7 +69,7 @@
       function initializeLinks(n) {
           links.splice(0,links.length);
           for (var i = 0; i < data.links.length; i++){
-            links.push({"source": data.links[i].source, "target": data.links[i].target})
+            links.push({"source": data.links[i].source, "target": data.links[i].target, "weight": data.links[i].weight})
           }
           //console.log(data.game[0].startstop,data.game[0].removed);
           return(links);
@@ -158,15 +158,15 @@
       links = initializeLinks(n);
       setTimeout(function() { initializeGraph(n); },0);
       setTimeout(function() { iterColor(n); },2000);
-      //debugger;
-      //removeNode(n);
+      debugger;
+      removeNode(n);
       //removeNodeLinks(n);
       //setTimeout(function() { iterRemove(n); },2000);
 
 
       function start(start,stop,path,remove) {
         
-        link = link.data(force.links(), function(d) { return d.source.name + "-" + d.target.name; });
+        link = link.data(force.links(), function(d) { return d.source + "-" + d.target; });
         link.enter().insert("line", ".node").attr("class", "link");
         link.exit().remove();
 
@@ -175,8 +175,8 @@
         link 
           .style("stroke", function(links){
             //console.log(links.source.name);
-            if( (path.indexOf(links.source.name) > - 1  && path.indexOf(links.target.name) > -1) ) {
-                console.log(links.source.name,links.target.name);
+            if( (path.indexOf(links.source) > - 1  && path.indexOf(links.target) > -1) ) {
+                console.log(links.source,links.target);
                 return '#ff0000';
               } else {
                 return '#999';
@@ -184,7 +184,7 @@
             })
           .style("stroke-width", function(links){
             //console.log(links.source.name);
-            if( path.indexOf(links.source.name) > - 1  && path.indexOf(links.target.name) > -1) {
+            if( path.indexOf(links.source) > - 1  && path.indexOf(links.target) > -1) {
               return '3';
               } else {
                 return '1.5';
