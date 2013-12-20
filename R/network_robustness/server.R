@@ -49,13 +49,14 @@ reactiveAdjacencyMatrix <- function(func){
         game.r$start.stop <- c()
         game.r$paths <- c()
         game.r$removed <- c()
-        while(length(get.all.shortest.paths(g.mod,test.v[1],test.v[2])$res)>0) {
+        while(length(get.shortest.paths(g.mod,which(V(g.mod)$names==test.v[1]),which(V(g.mod)$names==test.v[2]))[[1]])>0) {
           #print(test.v)
           # you can still make the connection
           # record path 
           game.r$startstop <- c(game.r$start.stop,paste(test.v,collapse=" "))
+          #print(c(test.v[1],test.v[2]))
           game.r$paths<-c(game.r$paths,
-            paste(get.all.shortest.paths(g.mod,test.v[1],test.v[2])$res[[1]],collapse=" "))
+            paste(V(g.mod)$names[get.shortest.paths(g.mod,which(V(g.mod)$names==test.v[1]),which(V(g.mod)$names==test.v[2]))[[1]]],collapse=" "))
           # ATTACK THE NETWORK
           node.removed <- sample(V(g.mod)$names,size=1)
           game.r$removed <- c(game.r$removed,node.removed)
@@ -64,7 +65,10 @@ reactiveAdjacencyMatrix <- function(func){
           if (node.removed == test.v[1] || node.removed == test.v[2]) {
             break
           }
-          if (class(try(get.all.shortest.paths(g.mod, test.v[1], test.v[2]),silent=T))=="try-error") {
+          if (class(try(get.shortest.paths(g.mod,which(V(g.mod)$names==test.v[1]),which(V(g.mod)$names==test.v[2]))))=="try-error") {
+            break
+          }
+          if (length(get.shortest.paths(g.mod,which(V(g.mod)$names==test.v[1]),which(V(g.mod)$names==test.v[2]))[[1]])==0) {
             break
           }
         }
