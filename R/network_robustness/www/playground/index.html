@@ -2,280 +2,36 @@
 <meta charset="utf-8">
 <style>
 
-.link {
-  stroke: #000;
-  stroke-width: 1.5px;
-}
-
-.link_path {
-  stroke: red;
-  stroke-width: 3px;
-}
-
-.node {
-  cursor: pointer;
-}
-
-.node circle {
-  fill: #000;
-  stroke: #000;
-  stroke-width: 1.5px;
-}
-
-.node text {
-  font: 10px sans-serif;
-}
+/* CSS goes here. */
 
 </style>
 <body>
 <script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
 <script>
 
-d3.json("graph.json", function(error,json) {
-  if (error) return console.warn(error);
-  data = json;
+/* JavaScript goes here. */
+var width = 960,
+    height = 1160;
 
-  var width = 800,
-      height = 600;
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
 
-  var color = d3.scale.category10();
+var projection = d3.geo.albers()
+  .center([0, 55.4])
+  .rotate([4.4, 0])
+  .parallels([50, 60])
+  .scale(6000)
+  .translate([width / 2, height / 2]);
 
-  var nodes = [],
-      links = [];
+var path = d3.geo.path()
+  .projection(projection);
 
-  var node_drag = d3.behavior.drag()
-        .on("dragstart", dragstart)
-        .on("drag", dragmove)
-        .on("dragend", dragend);
-
-  function dragstart(d, i) {
-      force.stop() // stops the force auto positioning before you start dragging
-  }
-
-  function dragmove(d, i) {
-      d.px += d3.event.dx;
-      d.py += d3.event.dy;
-      d.x += d3.event.dx;
-      d.y += d3.event.dy; 
-      tick(); // this is the key to make it work together with updating both px,py,x,y on d !
-  }
-
-  function dragend(d, i) {
-      d.fixed = true; // of course set the node to fixed so the force doesn't include the node in its auto positioning stuff
-      tick();
-      force.resume();
-  }
-
-  var force = d3.layout.force()
-      .nodes(nodes)
-      .links(links)
-      .charge(-(100*(100/data.names.length)))
-      .linkDistance(10*(100/data.names.length)) 
-      .theta(0.8)
-      .size([width, height])
-      .on("tick", tick)
-
-  var svg = d3.select("body").append("svg")
-      .attr("width", width)
-      .attr("height", height);
-
-  var node = svg.selectAll(".node"),
-      link = svg.selectAll(".link");
-
-  initGraph = function(){
-    nodes.splice(0,nodes.length);
-    for (var i = 0; i<data.names.length; i++){
-      nodes.push({id: data.names[i]})
-    }
-    links.splice(0,links.length);
-    for (var l = 0; l<data.links.length; l++){
-      links.push({source: nodes[data.links[l].source], target: nodes[data.links[l].target]})
-    }
-  }
-
-  playGame = function(n){
-    var tor = data.game[n].removed;
-    // find node to remove
-    var n_i = 0;
-    for (var n_index = 0; n_index<nodes.length; n_index++) {
-      if (nodes[n_index-n_i].id===tor) {
-        //console.log(nodes[n_index-n_i]);
-        nodes.splice(n_index-n_i,1);
-        n_i = n_i+1;
-      }
-    };
-    // find link to remove
-    var l_i = 0;
-    for (var l_index = 0; l_index<links.length; l_index++) {
-        //console.log(links[l_index-l_i].source.id,links[l_index-l_i].target.id)
-      if (links[l_index-l_i].source.id===tor || links[l_index-l_i].target.id===tor) {
-        //console.log("yes");
-        links.splice(l_index-l_i,1);
-        n_i = n_i+1;
-      }
-    };
-  };
-
-  iter = function(){
-    // update the view
-    var current = where
-    playGame(current);
-    start(current);
-    if (current==data.game.length-1) {
-      // end of the data
-      return true;
-    }
-    // check to see if this is the end for this graph
-    if (data.game[current].startstop.split(" ")[0]===data.game[current+1].startstop.split(" ")[0] && data.game[current].startstop.split(" ")[1]===data.game[current+1].startstop.split(" ")[1]) {
-      start(current+1);
-    } else{
-      setTimeout(function(){
-        initGraph();
-        start(current+1);
-      },2000);
-    }
-    where = where+1;
-  };
-
-  var where = 0;
-   // 1. Add three nodes and three links.
-  setTimeout(function() {
-    initGraph();
-    // original draw
-    start(where);
-  }, 0);
-  // 2. Remove node B and associated links.
-  setTimeout(function() {
-    setInterval(function(){iter();}, 5000);
-  }, 2000);
-
-  setTimeout(function() {
-    //debugger;
-    console.log("running!");
-    var state = "big";
-    var path = data.game[where].paths.split(" ");
-    setInterval(function(){
-    //join data
-    link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
-    //enter
-    link.enter().insert("line", ".node").attr("class", "link");
-    //update
-    if (state == "big") {
-      link
-      .transition().duration(500).style("stroke-width", 1.5);
-      state = "small";
-    } else {
-      var whereAMi = 0
-      link
-      .transition().duration(500).style("stroke-width",function(links){
-        if(link[0][whereAMi].style.stroke=="#ff0000"){
-          whereAMi = whereAMi+1;
-          return "8";
-        } else{
-          whereAMi = whereAMi+1;
-          return "1.5";
-        }
-      });
-      state = "big";
-    }
-    }, 750);
-  }, 0);
-
-  // // Add node B back.
-  // setTimeout(function() {
-  //   var a = nodes[0], b = {id: "b"}, c = nodes[1];
-  //   nodes.push(b);
-  //   links.push({source: a, target: b}, {source: b, target: c});
-  //   start();
-  // }, 6000);
-
-  function start(index) {
-    var start = data.game[index].startstop.split(" ")[0];
-    var stop = data.game[index].startstop.split(" ")[1];
-    var path = data.game[index].paths.split(" ");
-    var remove = data.game[index].removed;
-    //join data
-    link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
-    //enter
-    link.enter().insert("line", ".node").attr("class", "link").style("stroke-width",1.5);
-    //update
-    link 
-        .transition().duration(500).style("stroke", function(links){
-          //console.log(links.source.name);
-          if( ( (path.indexOf(links.source.id) > - 1)  && (path.indexOf(links.target.id) > -1) ) ){
-              //console.log(links.source.name,links.target.name);
-              return "red";
-            } else {
-              return "black";
-            }
-          })
-        .transition().duration(1500).style("stroke-width", function(links){
-          //console.log(links.source.name);
-          if( (path.indexOf(links.source.id) > - 1)  && (path.indexOf(links.target.id) > -1) ) {
-            return '5';
-            } else {
-              return '1.5';
-            }
-          });
-    //exit
-    link.exit().remove();
-
-    // join data
-    node = node.data(force.nodes(), function(d) { return d.id;});
-    node.transition().duration(10).attr("class", "node").transition().attr("r", 5);
-    node.enter().append("circle").attr("class", "node").attr("r", 0)
-      .transition().duration(500).attr("r", 5);
-    // update
-    node
-    .transition().duration(500).attr("r", function(nodes){
-        //console.log(d.name);
-        if (nodes.id==stop) {
-            return 15;
-          } else if (nodes.id==start) {
-            return 15;
-          } else {
-            return 5;
-          }
-        })
-    .transition().duration(500).style("fill", function(nodes){
-        if(nodes.id==remove){
-          return "orange";
-        } else if (nodes.id==stop) {
-            return "red";
-          } else if (nodes.id==start) {
-            return "blue";
-          } else {
-            return "black";
-          }
-        })
-    .style("stroke",'black').style("stroke-width", 1.5);
-    node.exit().remove();
-    //node.call(node_drag);
-
-    force.start();
-  }
-
-  function tick() {
-    node.attr("cx", function(d) { return d.x; })
-        .attr("cy", function(d) { return d.y; })
-        .call(node_drag)
-
-    link.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
-  }
-
-  function mouseover(d) {
-    d3.select(this).append("text")
-        .attr("class", "hover")
-        .attr('transform', function(d){ 
-            return 'translate(5, -10)';
-        })
-        .text(d.id);
-  }
+d3.json("uk.json", function(error, uk) {
+  svg.append("path")
+      .datum(topojson.feature(uk, uk.objects.subunits))
+      .attr("d", path);
 });
-
-
-
 </script>
+
