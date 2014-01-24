@@ -89,27 +89,6 @@ d3.json("us-states.json", function(collection) {
       .attr("d", path);
 });
 
-// read in graph 
-d3.json("graph.json", function(graph){
-  var linksByNode = {},
-      linksByNode_inv = {},
-      countByNode = [];
-  graph.links.forEach(function(link){
-    var origin = link.source,
-        destination = link.target,
-        links = linksByNode[origin] || (linksByNode[origin] = []),
-        links_inv = linksByNode_inv[destination] || (linksByNode_inv[destination] = []);
-    links.push({source: origin, target: destination});
-    links_inv.push({source: destination, target: origin });
-  });
-  for (var i=0;i<graph.names.length;i++){
-    var count_f = linksByNode[i] || [],
-        count_r = linksByNode_inv[i] || [];
-    countByNode.push(count_f.length+count_r.length);
-  }
-  debugger;
-});
-
 d3.csv("flights-airport.csv", function(flights) {
   var linksByOrigin = {},
       countByAirport = {},
